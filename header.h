@@ -6,7 +6,7 @@
 /*   By: maabidal <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/12 20:06:19 by maabidal          #+#    #+#             */
-/*   Updated: 2022/04/13 18:41:14 by maabidal         ###   ########.fr       */
+/*   Updated: 2022/04/13 19:20:27 by maabidal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ typedef struct s_general
 	t_time	sim_start;
 }	t_general;
 
-typedef pthraed_mutex	t_mutex;
+typedef pthread_mutex_t	t_mutex;
 
 typedef struct s_shared_data
 {
@@ -61,9 +61,10 @@ typedef struct s_to_philo
 }	t_to_philo;
 
 t_time	get_time(void);
+int		access_es(t_sa *es, int write);
 int		ft_malloc(void **add, size_t size);
-int		init_mutex(t_mutex *mutex);
+int		init_sa(t_sa *sa);
 int		ft_atoi(const char *nptr);
-void	print(t_philo *philo, t_general general, char *str, t_es *es);
+void	print(t_philo *philo, t_general *general, char *str, t_sa *es);
 void	*philosophize(void *add);
 #endif

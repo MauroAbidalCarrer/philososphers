@@ -6,7 +6,7 @@
 /*   By: maabidal <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/12 20:10:18 by maabidal          #+#    #+#             */
-/*   Updated: 2022/04/13 18:41:46 by maabidal         ###   ########.fr       */
+/*   Updated: 2022/04/13 19:14:33 by maabidal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ static int	use_forks(t_philo *philo, int action)
 {
 	int	ret;
 
-	if (philo->rf)
+	if (!philo->lf)
 		return (0);
 	pthread_mutex_lock(&philo->rf->mutex);
 	pthread_mutex_lock(&philo->lf->mutex);
@@ -71,7 +71,7 @@ static void	eat(t_philo *philo, t_general *general, t_es *es)
 {
 	t_time	delta;
 
-	while (access_es(es, 0) && !try_peak_up_forks(philo))
+	while (access_es(es, 0) && !try_peak_up_forks(philo, TAKE))
 	{
 		delta = philo->last_meal_time - get_time();
 		if (delta >= general->time_to_die)
@@ -81,15 +81,13 @@ static void	eat(t_philo *philo, t_general *general, t_es *es)
 			return ;
 		}
 	}
-	pthread_mutex_lock(es->es_mutex);
 	print(philo, FORK);
 	print(philo, FORK);
 	print(philo, EAT);
-	pthread_mutex_unlock(es->es_mutex);
 	philo.last_meal_time = get_time();
 	philo->time_eaten++;
 	wait(philo, general, general->time_to_eat);
-	put_dow_forks(philo);
+	use_forks(philo, DROP);
 }
 
 void	*philosophize(void *add)
@@ -102,7 +100,7 @@ void	*philosophize(void *add)
 	to_philo = (to_philo *)add;
 	general = to_philo->general;
 	philo = to_philo->philo;
-	ess = to_philo->es;
+	es = to_philo->es;
 	if (philo->id % 2 != 0)
 		print(philo, THINK);
 	while (!access_es(es, 0))

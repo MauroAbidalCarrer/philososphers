@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   sys_calls.c                                        :+:      :+:    :+:   */
+/*   utils.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maabidal <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/13 14:06:33 by maabidal          #+#    #+#             */
-/*   Updated: 2022/04/13 18:16:21 by maabidal         ###   ########.fr       */
+/*   Updated: 2022/04/13 19:08:28 by maabidal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,17 +23,18 @@ void	print(t_philo *philo, t_general general, char *str, t_es *es)
 	}
 }
 
-int	init_mutex(t_mutex *mutex)
+int	init_sa(t_sa *sa)
 {
 	int	ret;
 
-	ret = pthread_mutex_init(mutex, NULL);
+	ret = pthread_mutex_init(&sa->mutex, NULL);
 	if (ret == EAGAIN)
 		error("lacked the necessary resources to initialize a mutex\n");
 	if (ret == ENOMEM)
 		error("Error: Insufficient memory exists to initialize a mutex\n");
 	if (ret == EPERM)
 		error("Error: do not have the privilege to init mutex\n");
+	sa->data = 0;
 	return (ret);
 }
 
