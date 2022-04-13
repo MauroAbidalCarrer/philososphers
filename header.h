@@ -6,13 +6,14 @@
 /*   By: maabidal <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/12 20:06:19 by maabidal          #+#    #+#             */
-/*   Updated: 2022/04/13 19:20:27 by maabidal         ###   ########.fr       */
+/*   Updated: 2022/04/13 21:12:45 by maabidal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef HEADER_H
 # define HEADER_H
 # include <pthread.h>
+# include <errno.h>
 # include <stdlib.h>
 # include <stdio.h>
 # include <sys/time.h>
@@ -24,6 +25,9 @@
 # define DIED "died" 
 # define TAKE 0
 # define DROP 1
+# define EAGAIN_MSG "Lacked the necessary resources to initialize a mutex\n"
+# define ENOMEM_MSG "Insufficient memory exists to initialize a mutex\n"
+# define EPERM_MSG "Do not have the privilege to init mutex\n"
 
 typedef unsigned long	t_time;
 

@@ -6,7 +6,7 @@
 /*   By: maabidal <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/12 20:10:18 by maabidal          #+#    #+#             */
-/*   Updated: 2022/04/13 19:14:33 by maabidal         ###   ########.fr       */
+/*   Updated: 2022/04/13 19:39:11 by maabidal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ int	access_es(t_sa *es, int write)
 	return (ret);
 }
 
-static void	wait(t_philo *philo, t_general *general, t_time limit, t_es *es)
+static void	wait(t_philo *philo, t_general *general, t_time limit, t_sa *es)
 {
 	t_time	starting_time;
 	t_time	time;
@@ -67,26 +67,26 @@ static int	use_forks(t_philo *philo, int action)
 	return (ret);
 }
 
-static void	eat(t_philo *philo, t_general *general, t_es *es)
+static void	eat(t_philo *philo, t_general *general, t_sa *es)
 {
 	t_time	delta;
 
-	while (access_es(es, 0) && !try_peak_up_forks(philo, TAKE))
+	while (access_es(es, 0) && !use_forks(philo, TAKE))
 	{
 		delta = philo->last_meal_time - get_time();
 		if (delta >= general->time_to_die)
 		{
-			print(philo, DIED);
+			print(philo, general, DIED, es);
 			access_es(es, 1);
 			return ;
 		}
 	}
-	print(philo, FORK);
-	print(philo, FORK);
-	print(philo, EAT);
-	philo.last_meal_time = get_time();
+	print(philo, general, FORK, es);
+	print(philo, general, FORK, es);
+	print(philo, general, EAT, es);
+	philo->last_meal_time = get_time();
 	philo->time_eaten++;
-	wait(philo, general, general->time_to_eat);
+	wait(philo, general, general->time_to_eat, es);
 	use_forks(philo, DROP);
 }
 
@@ -95,22 +95,22 @@ void	*philosophize(void *add)
 	t_to_philo	*to_philo;
 	t_philo 	*philo;
 	t_general	*general;
-	t_es		*es;
+	t_sa		*es;
 
-	to_philo = (to_philo *)add;
+	to_philo = (t_to_philo *)add;
 	general = to_philo->general;
 	philo = to_philo->philo;
 	es = to_philo->es;
 	if (philo->id % 2 != 0)
-		print(philo, THINK);
+		print(philo, general, THINK, es);
 	while (!access_es(es, 0))
 	{
 		eat(philo, general, es);
-		if (philo.time_eaten >= general->max_meals && general->max_meals != -1)
+		if (philo->time_eaten >= general->max_meals && general->max_meals != -1)
 			break ;
-		print(philo, SLEEP, 1);
+		print(philo, general, SLEEP, es);
 		wait(philo, general, general->time_to_sleep, es);
-		print(philo, THINK):
+		print(philo, general, THINK, es);
 	}
 	return (NULL);
 }
