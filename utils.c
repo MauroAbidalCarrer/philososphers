@@ -6,21 +6,21 @@
 /*   By: maabidal <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/13 14:06:33 by maabidal          #+#    #+#             */
-/*   Updated: 2022/04/13 14:38:48 by maabidal         ###   ########.fr       */
+/*   Updated: 2022/04/13 18:16:21 by maabidal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "header.h"
 
-static void	error(char *str)
+void	print(t_philo *philo, t_general general, char *str, t_es *es)
 {
-	int	i;
+	t_time	c_time;
 
-	i = 0;
-	while (str[i])
-		i++;
-	write(2, "Error: ", 7);
-	write(2, str, i);
+	if (access_es(es, 0))
+	{
+		c_time = get_time() - general->sim_start;
+		printf("%ld %d %s\n", c_time, philo->id, str);
+	}
 }
 
 int	init_mutex(t_mutex *mutex)
@@ -53,4 +53,20 @@ t_time	get_time(void)
 	gettimeofday(&tv, NULL);
 	time = (t_time)tv.tv_sec * 1000 + (t_time)t_usec / 1000;
 	return (time);
+}
+
+int	ft_atoi(const char *nptr)
+{
+	long	sign;
+	long	nb;
+
+	while (*nptr == ' ')
+		nptr++;
+	sign = 1 - 2 * (*nptr == '-');
+	if (*nptr == '-' || *nptr == '+')
+		nptr++;
+	nb = 0;
+	while (inrange(*nptr, '0', '9'))
+		nb = nb * 10 + *nptr++ - '0';
+	return ((int)(nb * sign));
 }
