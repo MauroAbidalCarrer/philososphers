@@ -6,7 +6,7 @@
 /*   By: maabidal <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/13 14:06:33 by maabidal          #+#    #+#             */
-/*   Updated: 2022/04/13 21:13:20 by maabidal         ###   ########.fr       */
+/*   Updated: 2022/04/14 17:42:48 by maabidal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,11 +16,16 @@ void	print(t_philo *philo, t_general *general, char *str, t_sa *es)
 {
 	t_time	c_time;
 
-	if (access_es(es, 0))
+	pthread_mutex_lock(&es->mutex);
+	if (!es->data)
 	{
-		c_time = get_time() - general->sim_start;
-		printf("%ld %d %s\n", c_time, philo->id, str);
+		c_time = get_time();
+		if (c_time - philo->last_meal_time >= general->time_to_die)
+			str = DIED;
+		printf("%ld %d %s\n", c_time - general->sim_start, philo->id, str);
+		es->data = (str == DIED);
 	}
+	pthread_mutex_unlock(&es->mutex);
 }
 
 int	init_sa(t_sa *sa)

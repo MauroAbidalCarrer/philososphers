@@ -6,7 +6,7 @@
 /*   By: maabidal <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/06 19:22:04 by maabidal          #+#    #+#             */
-/*   Updated: 2022/04/14 15:42:53 by maabidal         ###   ########.fr       */
+/*   Updated: 2022/04/14 16:01:48 by maabidal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,8 +62,7 @@ static t_philo setup_philo(int index, int nb_philo, t_sa *forks, t_general *gene
 	int		limit;
 
 	philo.last_meal_time = general->sim_start;
-
-limit = nb_philo / 2 + nb_philo % 2;
+	limit = nb_philo / 2 + nb_philo % 2;
 	if (index < limit)
 		philo.id = index * 2;
 	else
@@ -108,6 +107,7 @@ static int launch_philo(t_ref ref, t_general general, t_sa *es, t_sa *forks)
 	to_philo.es = es;
 	if (pthread_create(&thread, NULL, philosophize, &to_philo) == -1)
 		return (1);
+//printf("launching philo %d\n", ref.index);
 	ret = launch_philo(ref, general, es, forks);
 	pthread_join(thread, &add);
 	return (ret);

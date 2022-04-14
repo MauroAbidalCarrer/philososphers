@@ -6,7 +6,7 @@
 /*   By: maabidal <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/12 20:10:18 by maabidal          #+#    #+#             */
-/*   Updated: 2022/04/13 19:39:11 by maabidal         ###   ########.fr       */
+/*   Updated: 2022/04/14 17:40:55 by maabidal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,7 @@ static int	use_forks(t_philo *philo, int action)
 	pthread_mutex_lock(&philo->lf->mutex);
 	if (action == TAKE && philo->rf->data == 0 && philo->lf->data == 0)
 	{
+//printf("philo %d took fork %d and %d\n", philo->id, philo->id, (philo->id + 1) % 3);
 		philo->rf->data = 1;
 		philo->lf->data = 1;
 	}
@@ -61,9 +62,11 @@ static int	use_forks(t_philo *philo, int action)
 		philo->rf->data = 0;
 		philo->lf->data = 0;
 	}
-	ret = philo->rf->data && philo->rf->data;
-	pthread_mutex_lock(&philo->rf->mutex);
-	pthread_mutex_lock(&philo->lf->mutex);
+	ret = 0;
+	if (action == TAKE)
+		ret = philo->rf->data == 1 && philo->lf->data == 1;
+	pthread_mutex_unlock(&philo->rf->mutex);
+	pthread_mutex_unlock(&philo->lf->mutex);
 	return (ret);
 }
 
@@ -71,13 +74,13 @@ static void	eat(t_philo *philo, t_general *general, t_sa *es)
 {
 	t_time	delta;
 
-	while (access_es(es, 0) && !use_forks(philo, TAKE))
+	delta = get_time() - philo->last_meal_time;
+	while (!access_es(es, 0) && !use_forks(philo, TAKE))
 	{
-		delta = philo->last_meal_time - get_time();
+		delta = get_time() - philo->last_meal_time;
 		if (delta >= general->time_to_die)
 		{
 			print(philo, general, DIED, es);
-			access_es(es, 1);
 			return ;
 		}
 	}
@@ -101,8 +104,8 @@ void	*philosophize(void *add)
 	general = to_philo->general;
 	philo = to_philo->philo;
 	es = to_philo->es;
-	if (philo->id % 2 != 0)
-		print(philo, general, THINK, es);
+//printf("philo %d\n", philo->id);
+	print(philo, general, THINK, es);
 	while (!access_es(es, 0))
 	{
 		eat(philo, general, es);
