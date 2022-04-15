@@ -6,7 +6,7 @@
 /*   By: maabidal <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/06 19:22:04 by maabidal          #+#    #+#             */
-/*   Updated: 2022/04/14 16:01:48 by maabidal         ###   ########.fr       */
+/*   Updated: 2022/04/15 19:59:50 by maabidal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ static t_sa	*setup_mutexes(int nb_philo, t_sa *es)
 	return (forks);
 }
 
-static t_general setup_general(int nb_philo, char **rest_av)
+static t_general setup_general(int nb_philo, char **rest_av, t_sa *type_to_eat)
 {
 	t_general general;
 
@@ -52,7 +52,10 @@ static t_general setup_general(int nb_philo, char **rest_av)
 	else
 		general.max_meals = ft_atoi(rest_av[3]);
 	general.sim_start = get_time();
-//printf("time_to_die = %ld\ntime_to_eat = %ld\n time_to_sleep = %ld\n max_meals = %d\ngeneral.sim_start = %ld\n", general.time_to_die, general.time_to_eat, general.time_to_sleep, general.max_meals, general.sim_start);
+	general.nb_philo = nb_philo;
+	init_sa(type_to_eat);
+	general.type_to_eat = type_to_eat;
+	general.moduler = nb_philo % 2 + 2;
 	return (general);
 }
 
@@ -62,25 +65,15 @@ static t_philo setup_philo(int index, int nb_philo, t_sa *forks, t_general *gene
 	int		limit;
 
 	philo.last_meal_time = general->sim_start;
-	limit = nb_philo / 2 + nb_philo % 2;
-	if (index < limit)
-		philo.id = index * 2;
-	else
-		philo.id = (index - limit) * 2 + 1;
+	limit = nb_philo / 2;
+	philo.id = index;
 	philo.rf = forks + philo.id;
 	if (nb_philo <= 1)
 		philo.lf = NULL;
 	else
 		philo.lf = forks + ((philo.id + 1) % nb_philo);
 	philo.time_eaten = 0;
-/*
-printf("to philo %d\n", index);
-printf("last meal   = %ld\n", philo.last_meal_time);
-printf("id = %d\n", philo.id);
-printf("rf          = %p\n", philo.rf);
-printf("lf          = %p\n", philo.lf);
-printf("time eaten  = %d\n\n", philo.time_eaten);
-*/
+	philo.type = philo.id % 2 + (philo.id != 0 && nb_philo % 2);
 	return (philo);
 }
 
@@ -100,14 +93,13 @@ static int launch_philo(t_ref ref, t_general general, t_sa *es, t_sa *forks)
 
 	if (ref.index >= ref.nb_philo)
 		return (0);
-//printf("index = %d\n", ref.index);
-	philo = setup_philo(ref.index++, ref.nb_philo, forks, &general);
+	philo = setup_philo(ref.index, ref.nb_philo, forks, &general);
 	to_philo.philo = &philo;
 	to_philo.general = &general;
 	to_philo.es = es;
-	if (pthread_create(&thread, NULL, philosophize, &to_philo) == -1)
+	if (pthread_create(&thread, NULL, philosophize, &to_philo))
 		return (1);
-//printf("launching philo %d\n", ref.index);
+	ref.index++;
 	ret = launch_philo(ref, general, es, forks);
 	pthread_join(thread, &add);
 	return (ret);
@@ -119,6 +111,7 @@ int	main(int ac, char **av)
 	t_sa	*forks;
 	int		nb_philo;
 	t_ref	ref;
+	t_sa	type_to_eat;
 
 	if (ac != 5 && ac != 6)
 		return (write(2, "nb of arg incorrect\n", 21), 1);
@@ -130,7 +123,7 @@ int	main(int ac, char **av)
 	forks = setup_mutexes(nb_philo, &es);
 	ref.index = 0;
 	ref.nb_philo = nb_philo;
-	if (launch_philo(ref, setup_general(nb_philo, av + 2), &es, forks))
+	if (launch_philo(ref, setup_general(nb_philo, av + 2, &type_to_eat), &es, forks))
 	{
 		write(2, "error while launching threads\n", 30);
 		es.data = 1;
@@ -139,5 +132,6 @@ int	main(int ac, char **av)
 		pthread_mutex_destroy(&(forks + nb_philo)->mutex);
 	free(forks);
 	pthread_mutex_destroy(&es.mutex);
+	pthread_mutex_destroy(&type_to_eat.mutex);
 	return (es.data);
 }

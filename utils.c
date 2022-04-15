@@ -6,26 +6,24 @@
 /*   By: maabidal <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/13 14:06:33 by maabidal          #+#    #+#             */
-/*   Updated: 2022/04/14 17:42:48 by maabidal         ###   ########.fr       */
+/*   Updated: 2022/04/15 16:50:42 by maabidal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "header.h"
 
-void	print(t_philo *philo, t_general *general, char *str, t_sa *es)
+int	access_sa(t_sa *sa, int action)
 {
-	t_time	c_time;
-
-	pthread_mutex_lock(&es->mutex);
-	if (!es->data)
-	{
-		c_time = get_time();
-		if (c_time - philo->last_meal_time >= general->time_to_die)
-			str = DIED;
-		printf("%ld %d %s\n", c_time - general->sim_start, philo->id, str);
-		es->data = (str == DIED);
-	}
-	pthread_mutex_unlock(&es->mutex);
+	int	ret;
+	pthread_mutex_lock(&sa->mutex);
+	if (action == WRITE)
+		sa->data = WRITE;
+	else if (action == ADD)
+		sa->data++;
+	ret = sa->data;
+	pthread_mutex_unlock(&sa->mutex);
+	usleep(0);
+	return (ret);
 }
 
 int	init_sa(t_sa *sa)

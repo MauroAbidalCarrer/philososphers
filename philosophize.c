@@ -6,44 +6,48 @@
 /*   By: maabidal <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/12 20:10:18 by maabidal          #+#    #+#             */
-/*   Updated: 2022/04/14 17:40:55 by maabidal         ###   ########.fr       */
+/*   Updated: 2022/04/15 20:20:23 by maabidal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "header.h"
 
-int	access_es(t_sa *es, int write)
+static void	print(t_philo *philo, t_general *general, char *str, t_sa *es)
 {
-	int	ret;
+	t_time	c_time;
 
 	pthread_mutex_lock(&es->mutex);
-	if (write)
-		es->data = write;
-	ret = es->data;
+	if (!es->data)
+	{
+		c_time = get_time();
+		printf("%ld %d %s\n", c_time - general->sim_start, philo->id, str);
+		es->data = (str == DIED);
+	}
 	pthread_mutex_unlock(&es->mutex);
-	return (ret);
 }
 
 static void	wait(t_philo *philo, t_general *general, t_time limit, t_sa *es)
 {
-	t_time	starting_time;
-	t_time	time;
+	t_time c_time;
 
-	starting_time = get_time();
-	time = get_time();
-	while (time - starting_time < limit && !access_es(es, 0))
+	if (access_sa(es, 0))
+		return ;
+	c_time = get_time();
+	if (philo->last_meal_time + general->time_to_die < c_time + limit)
 	{
-		if (time - philo->last_meal_time >= general->time_to_die)
-		{
-			print(philo, general, DIED, es);
-			access_es(es, 1);
-			break ;
-		}
-		time = get_time();
+		usleep((philo->last_meal_time + general->time_to_die - c_time) * 1000);
+		pthread_mutex_lock(&es->mutex);
+		c_time = get_time() - general->sim_start;
+		if (!es->data)
+			printf("%ld %d %s\n", c_time, philo->id, DIED);
+		es->data = 1;
+		pthread_mutex_unlock(&es->mutex);
 	}
+	else
+		usleep(limit * 1000);
 }
 
-static int	use_forks(t_philo *philo, int action)
+static int	use_forks(t_philo *philo, t_general *general, int action)
 {
 	int	ret;
 
@@ -51,46 +55,52 @@ static int	use_forks(t_philo *philo, int action)
 		return (0);
 	pthread_mutex_lock(&philo->rf->mutex);
 	pthread_mutex_lock(&philo->lf->mutex);
-	if (action == TAKE && philo->rf->data == 0 && philo->lf->data == 0)
-	{
-//printf("philo %d took fork %d and %d\n", philo->id, philo->id, (philo->id + 1) % 3);
-		philo->rf->data = 1;
-		philo->lf->data = 1;
-	}
-	else if (action == DROP)
+	pthread_mutex_lock(&general->type_to_eat->mutex);
+	ret = (philo->rf && philo->lf && general->type_to_eat->data == philo->type);
+	if (action == TAKE && ret)
 	{
 		philo->rf->data = 0;
 		philo->lf->data = 0;
 	}
-	ret = 0;
-	if (action == TAKE)
-		ret = philo->rf->data == 1 && philo->lf->data == 1;
-	pthread_mutex_unlock(&philo->rf->mutex);
+	else if (action == DROP)
+	{
+		philo->rf->data = 1;
+		philo->lf->data = 1;
+		general->type_to_eat->data = (philo->type + 1) % general->moduler;
+	}
+	pthread_mutex_unlock(&general->type_to_eat->mutex);
 	pthread_mutex_unlock(&philo->lf->mutex);
+	pthread_mutex_unlock(&philo->rf->mutex);
+	usleep(1);
 	return (ret);
 }
 
 static void	eat(t_philo *philo, t_general *general, t_sa *es)
 {
-	t_time	delta;
-
-	delta = get_time() - philo->last_meal_time;
-	while (!access_es(es, 0) && !use_forks(philo, TAKE))
+	while (!access_sa(es, 0) && !use_forks(philo, general, TAKE))
 	{
-		delta = get_time() - philo->last_meal_time;
-		if (delta >= general->time_to_die)
+		if (get_time() - philo->last_meal_time >= general->time_to_die)
 		{
 			print(philo, general, DIED, es);
 			return ;
 		}
 	}
-	print(philo, general, FORK, es);
-	print(philo, general, FORK, es);
-	print(philo, general, EAT, es);
-	philo->last_meal_time = get_time();
+	pthread_mutex_lock(&es->mutex);
+	if (es->data)
+	{
+		pthread_mutex_unlock(&es->mutex);
+		return ;
+	}
+	t_time time = get_time() - general->sim_start;
+	printf("%ld %d %s\n", time, philo->id, FORK);
+	printf("%ld %d %s\n", time, philo->id, FORK);
+	printf("%ld %d %s\n", time, philo->id, EAT);
+	pthread_mutex_unlock(&es->mutex);
+	usleep(1);
 	philo->time_eaten++;
-	wait(philo, general, general->time_to_eat, es);
-	use_forks(philo, DROP);
+	usleep(general->time_to_eat * 1000);
+	use_forks(philo, general, DROP);
+	philo->last_meal_time = get_time();
 }
 
 void	*philosophize(void *add)
@@ -104,16 +114,14 @@ void	*philosophize(void *add)
 	general = to_philo->general;
 	philo = to_philo->philo;
 	es = to_philo->es;
-//printf("philo %d\n", philo->id);
-	print(philo, general, THINK, es);
-	while (!access_es(es, 0))
+	while (!access_sa(es, 0))
 	{
-		eat(philo, general, es);
 		if (philo->time_eaten >= general->max_meals && general->max_meals != -1)
 			break ;
+		print(philo, general, THINK, es);
+		eat(philo, general, es);
 		print(philo, general, SLEEP, es);
 		wait(philo, general, general->time_to_sleep, es);
-		print(philo, general, THINK, es);
 	}
 	return (NULL);
 }
