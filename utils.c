@@ -6,7 +6,7 @@
 /*   By: maabidal <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/13 14:06:33 by maabidal          #+#    #+#             */
-/*   Updated: 2022/04/15 16:50:42 by maabidal         ###   ########.fr       */
+/*   Updated: 2022/04/16 17:43:48 by maabidal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 int	access_sa(t_sa *sa, int action)
 {
 	int	ret;
+
 	pthread_mutex_lock(&sa->mutex);
 	if (action == WRITE)
 		sa->data = WRITE;
@@ -22,7 +23,7 @@ int	access_sa(t_sa *sa, int action)
 		sa->data++;
 	ret = sa->data;
 	pthread_mutex_unlock(&sa->mutex);
-	usleep(0);
+	usleep(1);
 	return (ret);
 }
 

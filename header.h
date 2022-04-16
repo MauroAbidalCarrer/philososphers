@@ -6,7 +6,7 @@
 /*   By: maabidal <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/12 20:06:19 by maabidal          #+#    #+#             */
-/*   Updated: 2022/04/15 19:54:44 by maabidal         ###   ########.fr       */
+/*   Updated: 2022/04/16 18:20:26 by maabidal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@ typedef struct s_general
 typedef struct s_philo
 {
 	t_time	last_meal_time;
-	char	id;
+	int		id;
 	t_sa	*rf;
 	t_sa	*lf;
 	int		time_eaten;
