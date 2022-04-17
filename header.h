@@ -6,7 +6,7 @@
 /*   By: maabidal <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/12 20:06:19 by maabidal          #+#    #+#             */
-/*   Updated: 2022/04/16 18:20:26 by maabidal         ###   ########.fr       */
+/*   Updated: 2022/04/17 19:41:30 by maabidal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,24 +40,24 @@ typedef struct s_shared_data
 	t_mutex	mutex;
 }	t_sa;
 
+//tt = time to
+//pt = philospher to
 typedef struct s_general
 {
-	int		max_meals;
-	t_time	time_to_eat;
-	t_time	time_to_sleep;
-	t_time	time_to_die;
+	int		nb_eat;
+	t_time	tt_eat;
+	t_time	tt_sleep;
+	t_time	tt_die;
+	t_time	tt_wait;
 	t_time	sim_start;
-	t_sa	*type_to_eat;
 	int		nb_philo;
-	int		moduler;
 }	t_general;
 
 typedef struct s_philo
 {
-	t_time	last_meal_time;
 	int		id;
-	t_sa	*rf;
-	t_sa	*lf;
+	t_mutex	*rf;
+	t_mutex	*lf;
 	int		time_eaten;
 	char	type;
 }	t_philo;

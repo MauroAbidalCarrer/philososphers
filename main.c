@@ -6,7 +6,7 @@
 /*   By: maabidal <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/06 19:22:04 by maabidal          #+#    #+#             */
-/*   Updated: 2022/04/16 19:06:14 by maabidal         ###   ########.fr       */
+/*   Updated: 2022/04/17 19:15:13 by maabidal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,25 +40,28 @@ static t_sa	*setup_mutexes(int nb_philo, t_sa *es)
 	return (forks);
 }
 
-static t_general	setup_general(int nb_philo, char **rest_av, t_sa *tt_eat)
+static int	set_general(int nb_philo, char **av, t_sa *tt_eat, t_general *g)
 {
-	t_general	general;
-
-	general.time_to_die = ft_atoi(*rest_av);
-	general.time_to_eat = ft_atoi(rest_av[1]);
-	general.time_to_sleep = ft_atoi(rest_av[2]);
-	if (rest_av[3] == NULL)
-		general.max_meals = -1;
-	else
-		general.max_meals = ft_atoi(rest_av[3]);
-	general.sim_start = get_time();
-	general.nb_philo = nb_philo;
+	av += 2;
 	if (init_sa(tt_eat))
-		general.type_to_eat = NULL;
+		return (1);
+	g->tt_die = ft_atoi(*av);
+	if (g->tt_die <= 0)
+		return (1);
+	g->tt_eat = ft_atoi(av[1]);
+	if (g->tt_eat <= 0)
+		return (1);
+	g->tt_sleep = ft_atoi(av[2]);
+	if (g->tt_sleep <= 0)
+		return (1);
+	if (av[3] == NULL)
+		g->max_meals = -1;
 	else
-		general.type_to_eat = tt_eat;
-	general.moduler = nb_philo % 2 + 2;
-	return (general);
+		g->max_meals = ft_atoi(av[3]);
+	g->sim_start = get_time();
+	g->nb_philo = nb_philo;
+	g->pt_eat = tt_eat;
+	return (0);
 }
 
 typedef struct s_ref
@@ -67,7 +70,14 @@ typedef struct s_ref
 	int	nb_philo;
 }	t_ref;
 
-static t_philo	setup_philo(t_ref ref, t_sa *forks, t_general *general)
+//even
+//	0 = even
+//	1 = odd
+//odd
+//	0 = first philo
+//	1 = even
+//	2 = odd
+static t_philo	set_philo(t_ref ref, t_sa *forks, t_general *general)
 {
 	t_philo	philo;
 	int		limit;
@@ -95,9 +105,7 @@ static int	launch_philo(t_ref ref, t_general general, t_sa *es, t_sa *forks)
 
 	if (ref.index >= ref.nb_philo)
 		return (0);
-	if (general.type_to_eat == 0)
-		return (1);
-	philo = setup_philo(ref, forks, &general);
+	philo = set_philo(ref, forks, &general);
 	to_philo.philo = &philo;
 	to_philo.general = &general;
 	to_philo.es = es;
@@ -111,29 +119,29 @@ static int	launch_philo(t_ref ref, t_general general, t_sa *es, t_sa *forks)
 
 int	main(int ac, char **av)
 {
-	t_sa	es;
-	t_sa	*forks;
-	int		nb_philo;
-	t_ref	ref;
-	t_sa	tt_eat;
+	t_sa		es;
+	t_sa		*forks;
+	t_general	g;
+	t_ref		ref;
+	t_sa		tt_eat;
 
 	if (ac != 5 && ac != 6)
 		return (1);
-	nb_philo = ft_atoi(av[1]);
-	if (nb_philo <= 0 || nb_philo > 255)
+	ref.nb_philo = ft_atoi(av[1]);
+	if (ref.nb_philo <= 0 || ref.nb_philo > 255)
 		return (1);
-	forks = setup_mutexes(nb_philo, &es);
+	forks = setup_mutexes(ref.nb_philo, &es);
 	ref.index = 0;
-	ref.nb_philo = nb_philo;
-	if (launch_philo(ref, setup_general(nb_philo, av + 2, &tt_eat), &es, forks))
+	es.data = set_general(ref.nb_philo, av, &tt_eat, &g);
+	if (!es.data)
 	{
-		write(2, "error while launching threads\n", 30);
-		es.data = 1;
+		if (launch_philo(ref, g, &es, forks))
+			es.data = 1;
+		pthread_mutex_destroy(&tt_eat.mutex);
 	}
-	while (--nb_philo >= 0)
-		pthread_mutex_destroy(&(forks + nb_philo)->mutex);
+	while (--ref.nb_philo >= 0)
+		pthread_mutex_destroy(&(forks + ref.nb_philo)->mutex);
 	free(forks);
 	pthread_mutex_destroy(&es.mutex);
-	pthread_mutex_destroy(&tt_eat.mutex);
 	return (es.data);
 }

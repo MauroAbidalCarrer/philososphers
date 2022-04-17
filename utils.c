@@ -6,26 +6,11 @@
 /*   By: maabidal <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/13 14:06:33 by maabidal          #+#    #+#             */
-/*   Updated: 2022/04/16 17:43:48 by maabidal         ###   ########.fr       */
+/*   Updated: 2022/04/17 17:38:02 by maabidal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "header.h"
-
-int	access_sa(t_sa *sa, int action)
-{
-	int	ret;
-
-	pthread_mutex_lock(&sa->mutex);
-	if (action == WRITE)
-		sa->data = WRITE;
-	else if (action == ADD)
-		sa->data++;
-	ret = sa->data;
-	pthread_mutex_unlock(&sa->mutex);
-	usleep(1);
-	return (ret);
-}
 
 int	init_sa(t_sa *sa)
 {
