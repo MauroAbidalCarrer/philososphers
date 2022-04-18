@@ -6,28 +6,28 @@
 /*   By: maabidal <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/12 20:10:18 by maabidal          #+#    #+#             */
-/*   Updated: 2022/04/17 19:56:37 by maabidal         ###   ########.fr       */
+/*   Updated: 2022/04/19 00:07:41 by maabidal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "header.h"
 
-static int	cont(t_philo *me, t_general *g, t_sa *es, char *str)
+static int	print(t_philo *me, t_general *g, t_sa *es, char *str)
 {
 	int	ret;
 
-	pthread_mutex_lock(es->mutex);
+	pthread_mutex_lock(&es->mutex);
 	if (!es->data)
 		printf("%ld %d %s\n", get_time() - g->sim_start, me->id, str);
 	if (str == DIED)
 		es->data = 1;
 	ret = es->data;
-	pthread_mutex_unlock(es->mutex);
-	return (!ret);
+	pthread_mutex_unlock(&es->mutex);
+	return (ret);
 }
 
 //assumes that the philo has just eaten
-static int wait(t_philo *philo, t_general *g, t_sa *es, t_time wait_time)
+static int wait(t_philo *me, t_general *g, t_sa *es, t_time wait_time)
 {
 	int		dies_in_sleep;
 
@@ -41,7 +41,7 @@ static int wait(t_philo *philo, t_general *g, t_sa *es, t_time wait_time)
 }
 
 //sleep already exists
-static int _sleep(t_philo *philo, t_general *g, t_sa *es)
+static int _sleep(t_philo *me, t_general *g, t_sa *es)
 {
 	t_time	wait_time;
 
@@ -50,7 +50,7 @@ static int _sleep(t_philo *philo, t_general *g, t_sa *es)
 	wait_time = g->tt_wait;
 	if (wait_time <= g->tt_sleep)
 		wait_time = g->tt_sleep;
-	return (wait(philo, g, e, es, wait_time));
+	return (wait(me, g, es, wait_time));
 }
 
 //philo->time_eaten >= g->max_meals && g->max_meals != -1
@@ -64,17 +64,17 @@ static int	eat(t_philo *philo, t_general *g, t_sa *es)
 		return (wait(philo, g, es, g->tt_die));
 	pthread_mutex_lock(philo->rf);
 	pthread_mutex_lock(philo->lf);
-	pthread_mutex_lock(es->mutex);
+	pthread_mutex_lock(&es->mutex);
 	if (!es->data)
 	{
-		time = get_time();
+		time = get_time() - g->sim_start;
 		printf("%ld %d %s\n", time, philo->id, FORK);
 		printf("%ld %d %s\n", time, philo->id, FORK);
-		printf("%ld %d %s\n", time, philo->id, EST);
+		printf("%ld %d %s\n", time, philo->id, EAT);
 	}
 	else
 		g->tt_eat = 0;
-	pthread_mutex_unlock(es->mutex);
+	pthread_mutex_unlock(&es->mutex);
 	usleep(g->tt_eat * 1000);
 	pthread_mutex_unlock(philo->rf);
 	pthread_mutex_unlock(philo->lf);
@@ -85,17 +85,19 @@ static int	eat(t_philo *philo, t_general *g, t_sa *es)
 void	*philosophize(void *add)
 {
 	t_to_philo	*to_philo;
-	t_philo		*philo;
+	t_philo		*me;
 	t_general	*g;
 	t_sa		*es;
 
 	to_philo = (t_to_philo *)add;
 	g = to_philo->general;
-	philo = to_philo->philo;
+	me = to_philo->philo;
 	es = to_philo->es;
-	if (wait(me->type * g->tt_eat))
+	if (print(me, g, es, THINK))
 		return (NULL);
-	while (!print(me, g, es, THINK) && !eat(me, g, es) && !_sleep(me, g, es))
+	if (wait(me, g, es, me->type * g->tt_eat))
+		return (NULL);
+	while (!eat(me, g, es) && !_sleep(me, g, es) && !print(me, g, es, THINK))
 		;
 	return (NULL);
 }
