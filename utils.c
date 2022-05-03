@@ -6,7 +6,7 @@
 /*   By: maabidal <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/13 14:06:33 by maabidal          #+#    #+#             */
-/*   Updated: 2022/04/17 17:38:02 by maabidal         ###   ########.fr       */
+/*   Updated: 2022/05/03 17:29:07 by maabidal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,4 +59,14 @@ int	ft_atoi(const char *nptr)
 	while (*nptr >= '0' && *nptr <= '9')
 		nb = nb * 10 + *nptr++ - '0';
 	return ((int)(nb * sign));
+}
+
+int	str_equal(char *str1, char *str2)
+{
+	while (*str1 && *str1 == *str2)
+	{
+		str1++;
+		str2++;
+	}
+	return (*str1 == *str2);
 }

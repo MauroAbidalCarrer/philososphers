@@ -6,7 +6,7 @@
 /*   By: maabidal <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/12 20:06:19 by maabidal          #+#    #+#             */
-/*   Updated: 2022/04/17 19:41:30 by maabidal         ###   ########.fr       */
+/*   Updated: 2022/05/03 18:02:56 by maabidal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,7 @@ typedef struct s_philo
 	t_mutex	*lf;
 	int		time_eaten;
 	char	type;
+	t_time	last_meal;
 }	t_philo;
 
 typedef struct s_to_philo
@@ -75,4 +76,5 @@ int		ft_malloc(void **add, size_t size);
 int		init_sa(t_sa *sa);
 int		ft_atoi(const char *nptr);
 void	*philosophize(void *add);
+int		str_equal(char *str1, char *str2);
 #endif

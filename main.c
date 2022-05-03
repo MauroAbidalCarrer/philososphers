@@ -6,7 +6,7 @@
 /*   By: maabidal <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/06 19:22:04 by maabidal          #+#    #+#             */
-/*   Updated: 2022/04/19 00:07:23 by maabidal         ###   ########.fr       */
+/*   Updated: 2022/05/03 18:04:04 by maabidal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,10 @@ static int	set_general(int nb_philo, char **av, t_general *g)
 	g->sim_start = get_time();
 	g->nb_philo = nb_philo;
 	g->tt_wait = (nb_philo % 2 + 1) * g->tt_eat;
+	if (g->tt_wait <= g->tt_sleep)
+		g->tt_wait = 0;
+	else
+		g->tt_wait -= g->tt_sleep;
 	return (0);
 }
 
@@ -75,7 +79,7 @@ typedef struct s_ref
 //	0 = first philo
 //	1 = even
 //	2 = odd
-static t_philo	set_philo(t_ref ref, t_mutex *forks, t_general *general)
+static t_philo	set_philo(t_ref ref, t_mutex *forks, t_general g)
 {
 	t_philo	philo;
 
@@ -87,6 +91,7 @@ static t_philo	set_philo(t_ref ref, t_mutex *forks, t_general *general)
 		philo.lf = forks + ((philo.id + 1) % ref.nb_philo);
 	philo.time_eaten = 0;
 	philo.type = philo.id % 2 + (philo.id != 0 && ref.nb_philo % 2);
+	philo.last_meal = g.sim_start;
 	return (philo);
 }
 
@@ -100,7 +105,7 @@ static int	launch_philo(t_ref ref, t_general general, t_sa *es, t_mutex *forks)
 
 	if (ref.index >= ref.nb_philo)
 		return (0);
-	philo = set_philo(ref, forks, &general);
+	philo = set_philo(ref, forks, general);
 	to_philo.philo = &philo;
 	to_philo.general = &general;
 	to_philo.es = es;
