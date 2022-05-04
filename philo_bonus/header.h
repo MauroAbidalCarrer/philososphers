@@ -6,7 +6,7 @@
 /*   By: maabidal <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/05/03 18:40:21 by maabidal          #+#    #+#             */
-/*   Updated: 2022/05/04 02:33:32 by maabidal         ###   ########.fr       */
+/*   Updated: 2022/05/04 17:37:08 by maabidal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,9 +27,11 @@
 # define SEM_MODE S_IRUSR | S_IWUSR
 # define WAIT_OPTIONS WUNTRACED | WCONTINUED
 
+//real time is in micro seconds
 typedef unsigned long	t_time;
 typedef pthread_mutex_t	t_mutex;
 
+//sim_start is in real time
 typedef struct s_general
 {
 	int		nb_eat;
@@ -38,17 +40,17 @@ typedef struct s_general
 	t_time	tt_die;
 	t_time	tt_wait;
 	t_time	sim_start;
+	t_time	theo_time;
 	int		nb_philo;
 }	t_general;
 
-//last meal should the theoretical value
+//last meal is in theoretical time
 typedef struct s_philo
 {
 	int		id;
 	int		type;
 	int		nb_eat;
 	t_time	last_meal;
-	t_time	theoretical_time;
 }	t_philo;
 
 t_time	get_time(void);

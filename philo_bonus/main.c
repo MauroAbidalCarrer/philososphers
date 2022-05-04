@@ -6,44 +6,11 @@
 /*   By: maabidal <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/05/03 18:22:37 by maabidal          #+#    #+#             */
-/*   Updated: 2022/05/04 02:21:11 by maabidal         ###   ########.fr       */
+/*   Updated: 2022/05/04 17:43:35 by maabidal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "header.h"
-
-t_time	get_time(void)
-{
-	struct timeval	tv;
-
-	gettimeofday(&tv, NULL);
-	return ((t_time)tv.tv_sec * 1000 + (t_time)tv.tv_usec / 1000);
-}
-
-static int	set_general(int nb_philo, char **av, t_general *g)
-{
-	g->tt_die = ft_atoi(*av);
-	if (g->tt_eat < ft_atoi(*av))
-		return (1);
-	g->tt_eat = ft_atoi(av[1]);
-	if (g->tt_eat < ft_atoi(av[1]))
-		return (1);
-	g->tt_sleep = ft_atoi(av[2]);
-	if (g->tt_sleep < ft_atoi(av[2]))
-		return (1);
-	if (av[3] == NULL)
-		g->nb_eat = -1;
-	else
-		g->nb_eat = ft_atoi(av[3]);
-	g->sim_start = get_time();
-	g->nb_philo = nb_philo;
-	g->tt_wait = (nb_philo % 2 + 1) * g->tt_eat;
-	if (g->tt_wait <= g->tt_sleep)
-		g->tt_wait = 0;
-	else
-		g->tt_wait -= g->tt_sleep;
-	return (0);
-}
 
 static int	ft_atoi(const char *nptr)
 {
@@ -59,6 +26,31 @@ static int	ft_atoi(const char *nptr)
 	while (*nptr >= '0' && *nptr <= '9')
 		nb = nb * 10 + *nptr++ - '0';
 	return ((int)(nb * sign));
+}
+
+//set sim_start to time of day in miros seconds
+static int	set_general(int nb_philo, char **av, t_general *g)
+{
+	if (ft_atoi(*av) < 0 || ft_atoi(av[1]) < 0 || ft_atoi(av[2]) < 0)
+		return (1);
+	g->tt_die = ft_atoi(*av);
+	g->tt_eat = ft_atoi(av[1]);
+	g->tt_sleep = ft_atoi(av[2]);
+	if (av[3] == NULL)
+		g->nb_eat = -1;
+	else if (ft_atoi(av[3] < 0)
+		return (1);
+	else
+		g->nb_eat = ft_atoi(av[3]);
+	g->sim_start = get_time();
+	g->nb_philo = nb_philo;
+	g->tt_wait = (nb_philo % 2 + 1) * g->tt_eat;
+	if (g->tt_wait <= g->tt_sleep)
+		g->tt_wait = 0;
+	else
+		g->tt_wait -= g->tt_sleep;
+	g->theo_time = 0;
+	return (0);
 }
 
 static int	launch_philos(int id, sem_t *sem, t_general g)
