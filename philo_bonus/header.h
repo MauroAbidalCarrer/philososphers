@@ -6,7 +6,7 @@
 /*   By: maabidal <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/05/03 18:40:21 by maabidal          #+#    #+#             */
-/*   Updated: 2022/05/06 05:54:38 by maabidal         ###   ########.fr       */
+/*   Updated: 2022/05/06 20:50:20 by maabidal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ typedef struct s_general
 	t_time	tt_die;
 	t_time	tt_wait;
 	t_time	sim_start;
-	t_time	theo_time;
+	t_time	sim_t;
 	int		nb_philo;
 }	t_general;
 

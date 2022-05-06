@@ -6,7 +6,7 @@
 /*   By: maabidal <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/05/04 00:58:43 by maabidal          #+#    #+#             */
-/*   Updated: 2022/05/06 06:02:23 by maabidal         ###   ########.fr       */
+/*   Updated: 2022/05/06 21:48:11 by maabidal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,24 +40,20 @@ static int	_wait(t_philo *me, t_general *g, t_time tt_wait)
 	gettimeofday(&tv, NULL);
 	real_time = (t_time)tv.tv_sec * M + (t_time)tv.tv_usec;
 	utt_wait = K * tt_wait;
-
-/*
-printf("	id = %d, utt_wait = %llu \n", me->id, utt_wait);
-printf("	id = %d, time since start = %llu\n", me->id, real_time - g->sim_start);
-printf("	id = %d, time gap = %llu\n", me->id, real_time - g->sim_start - g->theo_time * K);
-printf("	id = %d, type = %d\n", me->id, type);
-*/
-
-	if (real_time - g->sim_start - g->theo_time * K <= utt_wait)
+	if (real_time - g->sim_start - g->sim_t * K < utt_wait)
 	{
-		utt_wait -= real_time - g->sim_start - g->theo_time * K;
-		printf("	id = %d, final utt_wait = %llu\n\n", me->id, utt_wait);
+		utt_wait -= real_time - g->sim_start - g->sim_t * K;
 		usleep(utt_wait);
 	}
+	if (type != -1)
+		printf("	id = %d, type_to_die = %d \n", me->id, type);
 	if (type == me->id)
+{
+printf("called\n");
 		print(me->id, DIED, *g);
-	g->theo_time += tt_wait;
-//printf("		id = %d, theo_time = %llu\n", me->id, g->theo_time);
+//printf("yes\n");
+}
+	g->sim_t += tt_wait;
 	return (type != -1);
 }
 
@@ -65,9 +61,14 @@ static int	_sleep(t_philo *me, t_general *g)
 {
 	print(me->id, SLEEP, *g);
 	if (_wait(me, g, g->tt_sleep))
+{
+//printf("	id = %d, sleep es = 1\n", me->id);
 		return (1);
+}
 	print(me->id, THINK, *g);
-	return (_wait(me, g, g->tt_wait));
+int	es = _wait(me, g, g->tt_wait);
+//printf("	id = %d, sleep es = %d\n", me->id, es);
+	return (es);
 }
 
 static int	eat(t_philo *me, t_general *g, sem_t *sem)
@@ -85,7 +86,7 @@ static int	eat(t_philo *me, t_general *g, sem_t *sem)
 	if (sem_post(sem) == -1 || sem_post(sem) == -1)
 		return (1);
 	me->nb_eat++;
-//printf("	id = %d, eat done, es = %d\N", me->id, es);
+//printf("	id = %d, eat es = %d, sim_t = %llu\n", me->id, es, g->sim_t);
 	return (es || (g->nb_eat != -1 && me->nb_eat >= g->nb_eat));
 }
 
@@ -103,7 +104,6 @@ void	philosophize(int id, t_general g, sem_t *sem)
 		id = 0;
 	offset *= g.tt_eat;
 	me.id = id;
-printf("	id = %d, offset = %llu\n", id, offset);
 	me.nb_eat = 0;
 	print(me.id, THINK, g);
 	if (g.nb_philo == 1)
@@ -113,10 +113,11 @@ printf("	id = %d, offset = %llu\n", id, offset);
 		print(me.id, DIED, g);
 	}
 	else if (_wait(&me, &g, offset))
-		;
+		printf("died at offset(%llu) id = %d\n", offset, id);
 	else while (!eat(&me, &g, sem) && !_sleep(&me, &g))
 		;
-printf("	id = %d, ...end\n", id);
+//	else
+	//	printf("stopped in loop id = %d\n", id);
 	sem_close(sem);
 	exit(!(g.nb_eat != -1 && me.nb_eat == g.nb_eat));
 }
