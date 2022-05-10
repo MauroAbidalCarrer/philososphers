@@ -6,7 +6,7 @@
 /*   By: maabidal <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/12 20:10:18 by maabidal          #+#    #+#             */
-/*   Updated: 2022/05/04 01:35:16 by maabidal         ###   ########.fr       */
+/*   Updated: 2022/05/10 16:46:33 by maabidal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,14 +31,18 @@ static int	wait(t_philo *me, t_general *g, t_sa *es, t_time wait_time)
 	t_time	c_time;
 
 	c_time = get_time();
+//printf("	id = %d, wait_time = %lu, last_meal = %lu", me->id, wait_time, me->last_meal - g->sim_start);
 	if (c_time + wait_time - me->last_meal >= g->tt_die)
 	{
-		usleep(g->tt_die * 1000);
+//printf(" GONNA DIE\n");
+printf("	id = %d, tt_die = %lu\n", me->id, me->last_meal + g->tt_die - c_time);
+		usleep((me->last_meal + g->tt_die - c_time) * 1000);
 		print(me, g, es, DIED);
 		return (1);
 	}
 	else
 	{
+//printf(" NOT gonna die\n");
 		usleep(wait_time * 1000);
 		return (0);
 	}
@@ -54,32 +58,24 @@ static int	_sleep(t_philo *me, t_general *g, t_sa *es)
 
 //philo->time_eaten >= g->max_meals && g->max_meals != -1
 static int	eat(t_philo *philo, t_general *g, t_sa *es)
-{
-	t_time	time;
+{	
+int	i;
 
 	if (philo->time_eaten >= g->nb_eat && g->nb_eat != -1)
 		return (1);
 	if (!philo->lf)
 		return (wait(philo, g, es, g->tt_die));
+	philo->last_meal = get_time();
 	pthread_mutex_lock(philo->rf);
 	pthread_mutex_lock(philo->lf);
-	pthread_mutex_lock(&es->mutex);
-	if (!es->data)
-	{
-		time = get_time() - g->sim_start;
-		printf("%ld %d %s\n", time, philo->id + 1, FORK);
-		printf("%ld %d %s\n", time, philo->id + 1, FORK);
-		printf("%ld %d %s\n", time, philo->id + 1, EAT);
-	}
-	else
-		g->tt_eat = 0;
-	pthread_mutex_unlock(&es->mutex);
-	usleep(g->tt_eat * 1000);
+i = print(philo, g, es, FORK);
+i = (i || print(philo, g, es, FORK));
+i = (i || print(philo, g, es, EAT));
+i = (i || wait(philo, g, es, g->tt_eat));
 	pthread_mutex_unlock(philo->rf);
 	pthread_mutex_unlock(philo->lf);
 	philo->time_eaten++;
-	philo->last_meal = get_time();
-	return (philo->time_eaten >= g->nb_eat && g->nb_eat != -1);
+	return (i || (philo->time_eaten >= g->nb_eat && g->nb_eat != -1));
 }
 
 void	*philosophize(void *add)
