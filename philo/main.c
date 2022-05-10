@@ -6,7 +6,7 @@
 /*   By: maabidal <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/06 19:22:04 by maabidal          #+#    #+#             */
-/*   Updated: 2022/05/03 18:04:04 by maabidal         ###   ########.fr       */
+/*   Updated: 2022/05/10 13:51:24 by maabidal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,8 @@ static int	set_general(int nb_philo, char **av, t_general *g)
 		return (1);
 	if (av[3] == NULL)
 		g->nb_eat = -1;
+	else if (ft_atoi(av[3]) < 0)
+		return (1);
 	else
 		g->nb_eat = ft_atoi(av[3]);
 	g->sim_start = get_time();

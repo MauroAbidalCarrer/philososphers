@@ -1,7 +1,0 @@
-cycle = tt_eat + tt_sleep + tt_wait
-offset = type * tt_eat
-
-is_dead(offset, cycle, time)
-{
-
-}
